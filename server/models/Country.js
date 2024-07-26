@@ -1,7 +1,7 @@
 const db = require("../db/connect");
 
 class Country {
-    constructor(country_id, name, capital, population, languages, fun_fact, map_image_url) {
+    constructor({ country_id, name, capital, population, languages, fun_fact, map_image_url }) {
         this.country_id = country_id;
         this.name = name;
         this.capital = capital;
@@ -16,7 +16,15 @@ class Country {
         if (response.rows.length === 0) {
             throw new Error("No countries available");
         }
-        return response.rows.map(c => new Country(c));
+        return response.rows.map(c => new Country(c))
+    }
+
+    static async getOneByCountryName(countryName) {
+        const response = await db.query("SELECT * FROM country WHERE LOWER(name) = LOWER($1);", [countryName]);
+        if (response.rows.length != 1) {
+            throw new Error("Unable to locate country");
+        }
+        return new Country(response.rows[0]);
     }
 }
 
