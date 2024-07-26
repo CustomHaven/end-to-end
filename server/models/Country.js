@@ -38,6 +38,37 @@ class Country {
             throw new Error("A country with this name already exists");
         }
     }
+
+    async update(data) {
+        for (const [key, value] of Object.entries(this)) {
+            if (key in data) {
+                this[key] = data[key]
+            }
+        }
+
+        const response = await db.query(`UPDATE country
+                                            SET name = $1,
+                                                capital = $2,
+                                                population = $3,
+                                                languages = $4,
+                                                fun_fact = $5, 
+                                                map_image_url = $6
+                                                WHERE country_id = $7 RETURNING *`,
+                                        [this.name, this.capital, this.population, this.languages, this.fun_fact, this.map_image_url, this.country_id]);
+            
+
+        if (response.rows[0]) {
+            return new Country(response.rows[0]);
+        } else {
+            throw new Error("Failed to update country");
+        }
+
+    }
+
+    async destroy() {
+        const response = await db.query("DELETE FROM country WHERE name = $1 RETURNING *;", [this.name]);
+        return new Country(response.rows[0]);
+    }
 }
 
 

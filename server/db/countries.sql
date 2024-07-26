@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS leader;
 DROP TABLE IF EXISTS country;
 
 CREATE TABLE country (
@@ -9,6 +10,16 @@ CREATE TABLE country (
     fun_fact VARCHAR(255),
     map_image_url VARCHAR(255),
     PRIMARY KEY (country_id)
+);
+
+CREATE TABLE leader (
+    leader_id INT GENERATED ALWAYS AS IDENTITY,
+    name VARCHAR(100) NOT NULL,
+    title VARCHAR(75) NOT NULL,
+    years_in_service INT DEFAULT 0,
+    country_id INT NOT NULL,
+    PRIMARY KEY (leader_id),
+    FOREIGN KEY (country_id) REFERENCES country(country_id)
 );
 
 INSERT INTO country (name, capital, population, languages, fun_fact, map_image_url)
