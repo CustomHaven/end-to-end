@@ -26,6 +26,18 @@ class Country {
         }
         return new Country(response.rows[0]);
     }
+
+    static async create(data) {
+        const { name, capital, population, languages } = data;
+        const existingCountry = await db.query("SELECT name FROM country WHERE LOWER(name) = LOWER($1);", [name]);
+        if (existingCountry.rows.length ===  0) {
+            let response = await db.query(`INSERT INTO country (name, capital, population, languages) 
+                                            VALUES ($1, $2, $3, $4) RETURNING *`, [name, capital, population, languages]);
+            return new Country(response.rows[0]);
+        } else {
+            throw new Error("A country with this name already exists");
+        }
+    }
 }
 
 

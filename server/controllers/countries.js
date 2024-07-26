@@ -19,9 +19,20 @@ async function show(req, res) {
     }
 }
 
+async function create(req, res) {
+    try {
+        const data = req.body;
+        const newCountry = await Country.create(data);
+        res.status(201).send(newCountry);
+    } catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+}
+
 
 
 module.exports = {
     index,
-    show
+    show,
+    create
 }
