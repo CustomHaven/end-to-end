@@ -61,6 +61,7 @@ class Country {
         if (response.rows[0]) {
             return new Country(response.rows[0]);
         } else {
+            console.log("BAD")
             throw new Error("Failed to update country");
         }
 

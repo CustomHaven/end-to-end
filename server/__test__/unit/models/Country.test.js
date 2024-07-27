@@ -113,4 +113,77 @@ describe("Country Model", () => {
     });
 
 
+
+    describe("update", () => {
+        let copyCountryObject;
+        beforeEach(() => {
+            copyCountryObject = { ...countryObject };
+            delete copyCountryObject.country_id;
+            delete copyCountryObject.fun_fact;
+            delete copyCountryObject.map_image_url;
+
+            copyCountryObject.languages = "English, Welsh, Scotish, Irish, and others";
+            copyCountryObject.capital = "Birmingham";
+        });
+
+        it("updates a country on successful db query", async () => {
+            // Arrange
+
+            const mockCountries = [
+                { ...countryObject, languages: copyCountryObject.languages, capital: copyCountryObject.capital }
+            ];
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
+
+            // Act
+            const country = new Country(countryObject);
+            expect(country.capital).toBe("London");
+            expect(country.languages).toBe("English");
+            const updatedCountry = await country.update(copyCountryObject);
+
+            // Assert
+            expect(country).toBeInstanceOf(Country);
+            expect(country.name).toBe("UK");
+            expect(country.capital).toBe("Birmingham");
+            expect(country.languages).toBe("English, Welsh, Scotish, Irish, and others");
+            expect(country.country_id).toBe(1);
+            expect(db.query).toHaveBeenCalledTimes(1);
+            expect(updatedCountry).toEqual({
+                ...countryObject,
+                languages: copyCountryObject.languages, 
+                capital: copyCountryObject.capital
+            });
+        });
+
+        it("should throw an Error if db query returns unsuccessful", async () => {
+            // Arrange
+            const mockResult = {
+                    ...copyCountryObject,
+                    fun_fact: countryObject.fun_fact,
+                    map_image_url: countryObject.map_image_url,
+                    country_id: countryObject.country_id
+            }
+
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: [] });
+
+            const country = new Country(countryObject);
+
+            // Act & Arrange
+            await expect(country.update(copyCountryObject)).rejects.toThrow("Failed to update country")
+            expect(db.query).toHaveBeenCalledWith(`UPDATE country
+                                            SET name = $1,
+                                                capital = $2,
+                                                population = $3,
+                                                languages = $4,
+                                                fun_fact = $5, 
+                                                map_image_url = $6
+                                                WHERE country_id = $7 RETURNING *`, [
+                                                    mockResult.name, mockResult.capital, mockResult.population, mockResult.languages,
+                                                    mockResult.fun_fact, mockResult.map_image_url, mockResult.country_id
+                                                ]);
+        });
+
+
+    });
+
+
 });
