@@ -16,7 +16,7 @@ class leader {
         return response.rows.map(c => new leader(c))
     }
 
-    static async getOneByleaderName(leaderName) {
+    static async getOneByLeaderName(leaderName) {
         const response = await db.query("SELECT * FROM leader WHERE LOWER(name) = LOWER($1);", [leaderName]);
         if (response.rows.length != 1) {
             throw new Error("Unable to locate leader");
@@ -39,8 +39,8 @@ class leader {
 
     async update(data) {
         for (const [key, value] of Object.entries(this)) {
-            if (key in data) {
-                this[key] = data[key]
+            if (key in data && key !== this.leader_id && key !== this.country_id && key !== this.name) {
+                this[key] = data[key];
             }
         }
 

@@ -67,7 +67,6 @@ class Country {
 
     async destroy() {
         const response = await db.query("DELETE FROM country WHERE name = $1 RETURNING *;", [this.name]);
-        console.log("response model delete!", response);
         return new Country(response.rows[0]);
     }
 }

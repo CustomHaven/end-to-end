@@ -13,7 +13,7 @@ async function index(req, res) {
 async function show(req, res) {
   try {
       const name = req.params.name;
-      const leader = await Leader.getOneByleaderName(name);
+      const leader = await Leader.getOneByLeaderName(name);
       res.status(200).json(leader);
   } catch (error) {
       res.status(404).json({ error: error.message });
