@@ -139,7 +139,7 @@ describe("Leader Model", () => {
             copyLeaderObject.years_in_service = 12;
         });
 
-        xit("updates a leader on successful db query", async () => {
+        it("updates a leader on successful db query", async () => {
             // Arrange
 
             const mockLeaders = [
@@ -167,62 +167,22 @@ describe("Leader Model", () => {
         });
 
         it("should throw an Error if db query returns unsuccessful", async () => {
-            // Arrange
-            const mockResult = {
-                    ...copyLeaderObject,
-                    // fun_fact: leaderObject.fun_fact,
-                    // map_image_url: leaderObject.map_image_url,
-                    // leader_id: leaderObject.leader_id
-            }
-
             // Act
             jest.spyOn(db, "query").mockResolvedValueOnce({ rows: [] });
             const leader = new Leader(leaderObject);
 
             // Arrange
             await expect(leader.update(copyLeaderObject)).rejects.toThrow("Failed to update leader");
-            // expect(db.query).toHaveBeenCalledWith(`UPDATE leader
-            //                                 SET name = $1,
-            //                                     capital = $2,
-            //                                     population = $3,
-            //                                     languages = $4,
-            //                                     fun_fact = $5, 
-            //                                     map_image_url = $6
-            //                                     WHERE leader_id = $7 RETURNING *`, [
-            //                                         mockResult.name, mockResult.capital, mockResult.population, mockResult.languages,
-            //                                         mockResult.fun_fact, mockResult.map_image_url, mockResult.leader_id
-            //                                     ]);
+            expect(db.query).toHaveBeenCalledWith(`UPDATE leader
+                                            SET name = $1,
+                                                years_in_service = $2,
+                                                country_id = $3
+                                                WHERE leader_id = $4 RETURNING *`, [
+                                                    leader.name, leader.years_in_service, leader.country_id, leader.leader_id
+                                                ]);
         });
     });
 
 
-    xdescribe("destroy", () => {
-        it("destroys a leader on successful db query", async () => {
-            // Arrange
-            const mockCountries = [ leaderObject ];
-            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
 
-            // Act
-            const leader = new Leader(leaderObject);
-            const deletedCountry = await leader.destroy();
-
-            // Assert
-            expect(leader).toBeInstanceOf(Leader);
-            expect(leader.name).toBe("UK");
-            expect(leader.capital).toBe(leader.capital);
-            expect(leader.languages).toBe(leader.languages);
-            expect(leader.leader_id).toBe(1);
-            expect(db.query).toHaveBeenCalledTimes(1);
-            expect(deletedCountry).toEqual({
-                ...leaderObject
-            });
-        });
-
-        it("should throw an Error if db query returns unsuccessful", async () => {
-            // Act & Arrange
-            jest.spyOn(db, "query").mockRejectedValue(new Error("Something wrong with the DB"));
-            const leader = new Leader(leaderObject);
-            await expect(leader.destroy()).rejects.toThrow("Something wrong with the DB")
-        });
-    });
 });
