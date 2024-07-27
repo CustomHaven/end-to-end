@@ -35,14 +35,13 @@ class Country {
                                             VALUES ($1, $2, $3, $4) RETURNING *`, [name, capital, population, languages]);
             return new Country(response.rows[0]);
         } else {
-            console.log("HIT WRROT")
             throw new Error("A country with this name already exists");
         }
     }
 
     async update(data) {
         for (const [key, value] of Object.entries(this)) {
-            if (key in data) {
+            if (key in data && key !== data.country_id && key !== data.country_name) {
                 this[key] = data[key]
             }
         }
@@ -61,7 +60,6 @@ class Country {
         if (response.rows[0]) {
             return new Country(response.rows[0]);
         } else {
-            console.log("BAD")
             throw new Error("Failed to update country");
         }
 
@@ -69,6 +67,7 @@ class Country {
 
     async destroy() {
         const response = await db.query("DELETE FROM country WHERE name = $1 RETURNING *;", [this.name]);
+        console.log("response model delete!", response);
         return new Country(response.rows[0]);
     }
 }

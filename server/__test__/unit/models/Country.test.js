@@ -163,12 +163,12 @@ describe("Country Model", () => {
                     country_id: countryObject.country_id
             }
 
+            // Act
             jest.spyOn(db, "query").mockResolvedValueOnce({ rows: [] });
-
             const country = new Country(countryObject);
 
-            // Act & Arrange
-            await expect(country.update(copyCountryObject)).rejects.toThrow("Failed to update country")
+            // Arrange
+            await expect(country.update(copyCountryObject)).rejects.toThrow("Failed to update country");
             expect(db.query).toHaveBeenCalledWith(`UPDATE country
                                             SET name = $1,
                                                 capital = $2,
@@ -181,9 +181,36 @@ describe("Country Model", () => {
                                                     mockResult.fun_fact, mockResult.map_image_url, mockResult.country_id
                                                 ]);
         });
-
-
     });
 
 
+    describe("destroy", () => {
+        it("destroys a country on successful db query", async () => {
+            // Arrange
+            const mockCountries = [ countryObject ];
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
+
+            // Act
+            const country = new Country(countryObject);
+            const deletedCountry = await country.destroy();
+
+            // Assert
+            expect(country).toBeInstanceOf(Country);
+            expect(country.name).toBe("UK");
+            expect(country.capital).toBe(country.capital);
+            expect(country.languages).toBe(country.languages);
+            expect(country.country_id).toBe(1);
+            expect(db.query).toHaveBeenCalledTimes(1);
+            expect(deletedCountry).toEqual({
+                ...countryObject
+            });
+        });
+
+        it("should throw an Error if db query returns unsuccessful", async () => {
+            // Act & Arrange
+            jest.spyOn(db, "query").mockRejectedValue(new Error("Something wrong with the DB"));
+            const country = new Country(countryObject);
+            await expect(country.destroy()).rejects.toThrow("Something wrong with the DB")
+        });
+    });
 });
