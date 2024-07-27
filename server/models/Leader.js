@@ -1,7 +1,7 @@
 const Country = require("./Country");
 const db = require("../db/connect");
 
-class leader {
+class Leader {
     constructor({ leader_id, name, years_in_service, country_id }) {
         this.leader_id = leader_id;
         this.name = name;
@@ -14,7 +14,7 @@ class leader {
         if (response.rows.length === 0) {
             throw new Error("No leaders available");
         }
-        return response.rows.map(c => new leader(c))
+        return response.rows.map(c => new Leader(c));
     }
 
     static async getOneByLeaderName(leaderName) {
@@ -22,7 +22,7 @@ class leader {
         if (response.rows.length != 1) {
             throw new Error("Unable to locate leader");
         }
-        return new leader(response.rows[0]);
+        return new Leader(response.rows[0]);
     }
 
     static async create(data) {
@@ -33,7 +33,7 @@ class leader {
             let response = await db.query(`INSERT INTO leader (name, years_in_service, country_id) 
                                             VALUES ($1, $2, $3) RETURNING *`, [name, years_in_service, country.country_id]);
             
-            return new leader(response.rows[0]);
+            return new Leader(response.rows[0]);
         } else {
             throw new Error("A leader with this name already exists");
         }
@@ -55,7 +55,7 @@ class leader {
             
 
         if (response.rows[0]) {
-            return new leader(response.rows[0]);
+            return new Leader(response.rows[0]);
         } else {
             throw new Error("Failed to update leader");
         }
@@ -64,9 +64,9 @@ class leader {
 
     async destroy() {
         const response = await db.query("DELETE FROM leader WHERE name = $1 RETURNING *;", [this.name]);
-        return new leader(response.rows[0]);
+        return new Leader(response.rows[0]);
     }
 }
 
 
-module.exports = leader;
+module.exports = Leader;

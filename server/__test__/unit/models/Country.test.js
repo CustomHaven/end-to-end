@@ -30,6 +30,7 @@ describe("Country Model", () => {
             const countries = await Country.getAll();
 
             // Assert
+            expect(countries.every(country => country instanceof Country)).toBe(true);
             expect(countries).toHaveLength(3);
             expect(countries[2].name).toBe("UAE");
             expect(countries[1].country_id).toBe(2);

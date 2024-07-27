@@ -28,6 +28,7 @@ describe("Leader Model", () => {
             const leaders = await Leader.getAll();
 
             // Assert
+            expect(leaders.every(leader => leader instanceof Leader)).toBe(true);
             expect(leaders).toHaveLength(3);
             expect(leaders[0].name).toBe("John Doe");
             expect(leaders[0].years_in_service).toBe(3);
