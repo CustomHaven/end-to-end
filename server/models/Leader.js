@@ -1,3 +1,4 @@
+const Country = require("./Country");
 const db = require("../db/connect");
 
 class leader {
@@ -25,11 +26,12 @@ class leader {
     }
 
     static async create(data) {
-        const { name, years_in_service, country_id } = data;
+        const { name, years_in_service, country_name } = data;
+        const country = await Country.getOneByCountryName(country_name);
         const existingleader = await db.query("SELECT name FROM leader WHERE LOWER(name) = LOWER($1);", [name]);
         if (existingleader.rows.length ===  0) {
             let response = await db.query(`INSERT INTO leader (name, years_in_service, country_id) 
-                                            VALUES ($1, $2, $3) RETURNING *`, [name, years_in_service, country_id]);
+                                            VALUES ($1, $2, $3) RETURNING *`, [name, years_in_service, country.country_id]);
             
             return new leader(response.rows[0]);
         } else {

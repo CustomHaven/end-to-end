@@ -1,4 +1,5 @@
 const Leader = require("../../../models/Leader");
+const Country = require("../../../models/Country");
 const db = require("../../../db/connect");
 
 let leaderObject;
@@ -70,96 +71,108 @@ describe("Leader Model", () => {
     });
 
 
-    xdescribe("create", () => {
-        let copyCountryObject;
+    describe("create", () => {
+        let copyLeaderObject;
+        // 
         beforeEach(() => {
-            copyCountryObject = { ...leaderObject };
-            delete copyCountryObject.leader_id;
-            delete copyCountryObject.fun_fact;
-            delete copyCountryObject.map_image_url;
-        })
+            copyLeaderObject = { ...leaderObject };
+            delete copyLeaderObject.leader_id;
+            delete copyLeaderObject.country_id;
+            copyLeaderObject.name = "New Leader";
+            copyLeaderObject.years_in_service = 12;
+        });
 
-        it("resolves with a leader on successful creation", async () => {
+        it("resolves with a new leader on successful creation", async () => {
             // Arrange
 
-            const mockCountries = [
-                { ...leaderObject, leader_id: 5 }
+            const mockResultLeaders = [
+                { ...leaderObject, leader_id: 5, years_in_service: copyLeaderObject.years_in_service, name: copyLeaderObject.name, country_id: 8 }
             ];
+            jest.spyOn(Country, "getOneByCountryName").mockResolvedValueOnce({ country_id: 8 });
             jest.spyOn(db, "query").mockResolvedValueOnce({ rows: [] });
-            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockResultLeaders });
 
             // Act
-            const leader = await Leader.create(copyCountryObject);
+            const leader = await Leader.create(copyLeaderObject);
 
             // Assert
             expect(leader).toBeInstanceOf(Leader);
-            expect(leader.name).toBe("UK");
+            expect(leader.name).toBe("New Leader");
             expect(leader.leader_id).toBe(5);
+            expect(leader.years_in_service).toBe(12);
+            
+            expect(Country.getOneByCountryName).toHaveBeenCalledTimes(1);
             expect(db.query).toHaveBeenCalledTimes(2);
-            expect(db.query).toHaveBeenCalledWith(`INSERT INTO leader (name, capital, population, languages) 
-                                            VALUES ($1, $2, $3, $4) RETURNING *`, [copyCountryObject.name, "London", 6000000, "English"]);
+            expect(db.query).toHaveBeenCalledWith(`INSERT INTO leader (name, years_in_service, country_id) 
+                                            VALUES ($1, $2, $3) RETURNING *`, [
+                                                copyLeaderObject.name, 
+                                                copyLeaderObject.years_in_service,
+                                                8
+                                            ]);
+            
+            expect(leader).toEqual(mockResultLeaders[0])
         });
 
         it("should throw an Error if leader already exists", async () => {
             // Arrange
-            const mockCountries = [ leaderObject ];
-            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
+            copyLeaderObject.name = "John Doe";
+            const mockLeaders = [ leaderObject ];
+            jest.spyOn(Country, "getOneByCountryName").mockResolvedValueOnce({ country_id: 8 });
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockLeaders });
 
             // Act & Arrange
-            await expect(Leader.create(copyCountryObject)).rejects.toThrow("A leader with this name already exists");
-            expect(db.query).toHaveBeenCalledWith("SELECT name FROM leader WHERE LOWER(name) = LOWER($1);", ["UK"]);
+            await expect(Leader.create(copyLeaderObject)).rejects.toThrow("A leader with this name already exists");
+            expect(db.query).toHaveBeenCalledWith("SELECT name FROM leader WHERE LOWER(name) = LOWER($1);", ["John Doe"]);
         });
     });
 
 
 
-    xdescribe("update", () => {
-        let copyCountryObject;
+    describe("update", () => {
+        let copyLeaderObject;
+        // 
         beforeEach(() => {
-            copyCountryObject = { ...leaderObject };
-            delete copyCountryObject.leader_id;
-            delete copyCountryObject.fun_fact;
-            delete copyCountryObject.map_image_url;
-
-            copyCountryObject.languages = "English, Welsh, Scotish, Irish, and others";
-            copyCountryObject.capital = "Birmingham";
+            copyLeaderObject = { ...leaderObject };
+            delete copyLeaderObject.leader_id;
+            delete copyLeaderObject.country_id;
+            copyLeaderObject.name = "New Leader";
+            copyLeaderObject.years_in_service = 12;
         });
 
-        it("updates a leader on successful db query", async () => {
+        xit("updates a leader on successful db query", async () => {
             // Arrange
 
-            const mockCountries = [
-                { ...leaderObject, languages: copyCountryObject.languages, capital: copyCountryObject.capital }
+            const mockLeaders = [
+                { ...leaderObject, name: copyLeaderObject.name, years_in_service: copyLeaderObject.years_in_service }
             ];
-            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockCountries });
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockLeaders });
 
             // Act
             const leader = new Leader(leaderObject);
-            expect(leader.capital).toBe("London");
-            expect(leader.languages).toBe("English");
-            const updatedCountry = await leader.update(copyCountryObject);
+            expect(leader.name).toBe("John Doe");
+            expect(leader.years_in_service).toBe(3);
+            const updatedCountry = await leader.update(copyLeaderObject);
 
             // Assert
             expect(leader).toBeInstanceOf(Leader);
-            expect(leader.name).toBe("UK");
-            expect(leader.capital).toBe("Birmingham");
-            expect(leader.languages).toBe("English, Welsh, Scotish, Irish, and others");
+            expect(leader.name).toBe("New Leader");
+            expect(leader.years_in_service).toBe(12);
             expect(leader.leader_id).toBe(1);
             expect(db.query).toHaveBeenCalledTimes(1);
             expect(updatedCountry).toEqual({
                 ...leaderObject,
-                languages: copyCountryObject.languages, 
-                capital: copyCountryObject.capital
+                name: copyLeaderObject.name, 
+                years_in_service: copyLeaderObject.years_in_service
             });
         });
 
         it("should throw an Error if db query returns unsuccessful", async () => {
             // Arrange
             const mockResult = {
-                    ...copyCountryObject,
-                    fun_fact: leaderObject.fun_fact,
-                    map_image_url: leaderObject.map_image_url,
-                    leader_id: leaderObject.leader_id
+                    ...copyLeaderObject,
+                    // fun_fact: leaderObject.fun_fact,
+                    // map_image_url: leaderObject.map_image_url,
+                    // leader_id: leaderObject.leader_id
             }
 
             // Act
@@ -167,18 +180,18 @@ describe("Leader Model", () => {
             const leader = new Leader(leaderObject);
 
             // Arrange
-            await expect(leader.update(copyCountryObject)).rejects.toThrow("Failed to update leader");
-            expect(db.query).toHaveBeenCalledWith(`UPDATE leader
-                                            SET name = $1,
-                                                capital = $2,
-                                                population = $3,
-                                                languages = $4,
-                                                fun_fact = $5, 
-                                                map_image_url = $6
-                                                WHERE leader_id = $7 RETURNING *`, [
-                                                    mockResult.name, mockResult.capital, mockResult.population, mockResult.languages,
-                                                    mockResult.fun_fact, mockResult.map_image_url, mockResult.leader_id
-                                                ]);
+            await expect(leader.update(copyLeaderObject)).rejects.toThrow("Failed to update leader");
+            // expect(db.query).toHaveBeenCalledWith(`UPDATE leader
+            //                                 SET name = $1,
+            //                                     capital = $2,
+            //                                     population = $3,
+            //                                     languages = $4,
+            //                                     fun_fact = $5, 
+            //                                     map_image_url = $6
+            //                                     WHERE leader_id = $7 RETURNING *`, [
+            //                                         mockResult.name, mockResult.capital, mockResult.population, mockResult.languages,
+            //                                         mockResult.fun_fact, mockResult.map_image_url, mockResult.leader_id
+            //                                     ]);
         });
     });
 
