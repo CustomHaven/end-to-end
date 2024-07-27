@@ -35,6 +35,7 @@ class Country {
                                             VALUES ($1, $2, $3, $4) RETURNING *`, [name, capital, population, languages]);
             return new Country(response.rows[0]);
         } else {
+            console.log("HIT WRROT")
             throw new Error("A country with this name already exists");
         }
     }
