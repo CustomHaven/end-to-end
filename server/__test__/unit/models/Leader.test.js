@@ -183,6 +183,33 @@ describe("Leader Model", () => {
         });
     });
 
+    describe("destroy", () => {
+        it("destroys a leader on successful db query", async () => {
+            // Arrange
+            const mockLeaders = [ leaderObject ];
+            jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockLeaders });
 
+            // Act
+            const leader = new Leader(leaderObject);
+            const deletedCountry = await leader.destroy();
+
+            // Assert
+            expect(leader).toBeInstanceOf(Leader);
+            expect(leader.name).toBe("John Doe");
+            expect(leader.years_in_service).toBe(leader.years_in_service);
+            expect(leader.leader_id).toBe(1);
+            expect(db.query).toHaveBeenCalledTimes(1);
+            expect(deletedCountry).toEqual({
+                ...leaderObject
+            });
+        });
+
+        it("should throw an Error if db query returns unsuccessful", async () => {
+            // Act & Arrange
+            jest.spyOn(db, "query").mockRejectedValue(new Error("Something wrong with the DB"));
+            const leader = new Leader(leaderObject);
+            await expect(leader.destroy()).rejects.toThrow("Something wrong with the DB")
+        });
+    });
 
 });
