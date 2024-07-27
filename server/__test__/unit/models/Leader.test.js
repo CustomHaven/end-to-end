@@ -20,7 +20,7 @@ describe("Leader Model", () => {
         it("resolves with leaders on successful db query", async () => {
             // Arrange
             const mockLeaders = [
-                leaderObject, {...leaderObject, leader_id: 2, name: "USA" }, {...leaderObject, leader_id: 3, name: "UAE" }
+                leaderObject, { ...leaderObject, leader_id: 2, name: "USA" }, {...leaderObject, leader_id: 3, name: "UAE" }
             ];
             jest.spyOn(db, "query").mockResolvedValueOnce({ rows: mockLeaders });
 
